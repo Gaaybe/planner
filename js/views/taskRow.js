@@ -1,7 +1,8 @@
 import * as store from '../store.js';
-import { h, debounce, today, relDay } from '../util.js';
+import { h, today, relDay } from '../util.js';
 import { icon } from '../icons.js';
-import { tagEditor, tagChips } from '../components.js';
+import { tagChips } from '../components.js';
+import { openTask, currentTask } from '../taskPanel.js';
 import { go } from '../nav.js';
 
 export function sortTasks(a, b) {
@@ -30,60 +31,31 @@ export function checkBox(rec) {
   }, icon('check', 14));
 }
 
-// Full task row with an expandable detail panel.
-// opts: { expanded:Set, showList:bool, showDue:bool, onToggleOpen }
+// Task row. Clicking it opens the task's details in the side panel.
+// opts: { showList:bool, showDue:bool }
 export function taskRow(rec, opts = {}) {
   const d = rec.data;
-  const open = opts.expanded && opts.expanded.has(rec.id);
-  const wrap = h('div', { class: 'task' + (d.done ? ' done' : '') + (open ? ' open' : ''), dataset: { id: rec.id } });
-  const title = h('input', { class: 'task-title', value: d.title || '', 'aria-label': 'Task title', type: 'text' });
-  const commitTitle = () => { const v = title.value.trim(); if (v && v !== store.getData(rec.id)?.title) store.update(rec.id, { title: v }); else if (!v) title.value = store.getData(rec.id)?.title || ''; };
-  title.addEventListener('change', commitTitle);
-  title.addEventListener('keydown', (e) => { if (e.key === 'Enter') { title.blur(); } });
   const list = opts.showList && d.listId ? store.get(d.listId) : null;
-  const toggleOpen = () => {
-    if (!opts.expanded) return;
-    if (opts.expanded.has(rec.id)) opts.expanded.delete(rec.id); else opts.expanded.add(rec.id);
-    if (opts.onToggleOpen) opts.onToggleOpen();
-  };
-  const row = h('div', { class: 'task-row' },
-    checkBox(rec), title,
+  const open = () => openTask(rec.id);
+  const row = h('div', {
+    class: 'task task-row' + (d.done ? ' done' : '') + (currentTask() === rec.id ? ' selected' : ''),
+    dataset: { taskId: rec.id }, role: 'button', tabindex: '0', 'aria-label': `Open task ${d.title}`,
+    onclick: open, onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }
+  },
+    checkBox(rec),
+    h('span', { class: 'task-title' }, d.title || 'Untitled task'),
+    d.notes ? h('span', { class: 'task-has-notes', title: 'Has notes' }, icon('note', 14)) : null,
     tagChips(d.tags, (id) => go('/tag/' + id)),
     list ? h('span', { class: 'task-list-label' }, list.data.name) : null,
-    opts.showDue === false ? null : dueChip(d.due, d.done),
-    opts.expanded ? h('button', { class: 'icon-btn', 'aria-label': open ? 'Hide details' : 'Show details', 'aria-expanded': open ? 'true' : 'false', onclick: toggleOpen }, icon(open ? 'down' : 'more', 16)) : null);
-  row.addEventListener('dblclick', (e) => { if (e.target === row) toggleOpen(); });
-  wrap.appendChild(row);
-  if (open) wrap.appendChild(taskDetail(rec));
-  return wrap;
-}
-
-function taskDetail(rec) {
-  const d = rec.data;
-  const due = h('input', { class: 'input', type: 'date', value: d.due || '', 'aria-label': 'Due date' });
-  due.addEventListener('change', () => store.update(rec.id, { due: due.value || null }));
-  const lists = store.all('list').sort((a, b) => (a.data.order || 0) - (b.data.order || 0));
-  const listSel = h('select', { class: 'select', 'aria-label': 'List' }, lists.map((l) => h('option', { value: l.id, selected: l.id === d.listId }, l.data.name)));
-  listSel.addEventListener('change', () => store.update(rec.id, { listId: listSel.value }));
-  const notes = h('textarea', { class: 'textarea', placeholder: 'Notes', rows: 3, 'aria-label': 'Task notes' });
-  notes.value = d.notes || '';
-  const saveNotes = debounce(() => store.update(rec.id, { notes: notes.value }), 400);
-  notes.addEventListener('input', saveNotes);
-  notes.addEventListener('blur', () => saveNotes.flush());
-  return h('div', { class: 'task-detail' },
-    h('div', { class: 'row' },
-      h('label', null, 'Due date', due),
-      h('label', null, 'List', listSel),
-      h('label', null, 'Tags', tagEditor(() => store.getData(rec.id)?.tags || [], (ids) => store.update(rec.id, { tags: ids })))),
-    notes,
-    h('div', { class: 'row' }, h('button', { class: 'btn small ghost danger', onclick: () => store.remove(rec.id) }, icon('trash', 15), 'Delete task')));
+    opts.showDue === false ? null : dueChip(d.due, d.done));
+  return row;
 }
 
 // Compact row for calendar columns.
 export function miniTask(rec) {
-  return h('div', { class: 'wtask' + (rec.data.done ? ' done' : '') },
+  return h('div', { class: 'wtask' + (rec.data.done ? ' done' : '') + (currentTask() === rec.id ? ' selected' : ''), dataset: { taskId: rec.id } },
     checkBox(rec),
-    h('span', { class: 't', title: 'Open in list', onclick: () => go('/tasks/' + (rec.data.listId || 'all')) }, rec.data.title));
+    h('span', { class: 't', role: 'button', tabindex: '0', title: 'Open task details', onclick: () => openTask(rec.id), onkeydown: (e) => { if (e.key === 'Enter') openTask(rec.id); } }, rec.data.title));
 }
 
 export function addTask(title, fields = {}) {

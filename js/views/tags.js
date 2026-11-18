@@ -5,6 +5,7 @@ import { tagsSorted, createTag, confirmAction } from '../components.js';
 import { go, setTitle } from '../nav.js';
 import { noteTitle } from './notes.js';
 import { dueChip, checkBox, rerenderSafely } from './taskRow.js';
+import { openTask } from '../taskPanel.js';
 
 const TAGGABLE = ['task', 'note', 'daily', 'wbitem'];
 function usage(tagId) {
@@ -73,7 +74,7 @@ export function tagView(root, params) {
     inner.append(h('div', { class: 'page-head' }, h('h1', null, h('span', { class: 'tag', style: { '--tag': tag.data.color, fontSize: '22px', height: '36px', padding: '0 14px' } }, tag.data.name)), h('a', { class: 'btn ghost', href: '#/tags' }, 'All tags')));
     if (!tasks.length && !notes.length && !dailies.length && !items.length) inner.appendChild(h('div', { class: 'empty' }, 'Nothing has this tag yet.'));
     if (tasks.length) inner.appendChild(h('div', { class: 'result-group' }, h('h2', null, 'Tasks'), tasks.map((t) =>
-      h('div', { class: 'result', style: t.data.done ? { opacity: .6 } : null }, checkBox(t), h('span', { class: 'r-title', style: { cursor: 'pointer' }, onclick: () => go('/tasks/' + t.data.listId) }, t.data.title), dueChip(t.data.due, t.data.done)))));
+      h('div', { class: 'result', style: t.data.done ? { opacity: .6 } : null }, checkBox(t), h('span', { class: 'r-title', style: { cursor: 'pointer' }, onclick: () => openTask(t.id) }, t.data.title), dueChip(t.data.due, t.data.done)))));
     if (notes.length) inner.appendChild(h('div', { class: 'result-group' }, h('h2', null, 'Notes'), notes.map((n) =>
       h('button', { class: 'result', onclick: () => go('/notes/all/' + n.id) }, icon('note', 16), h('span', { class: 'r-title' }, noteTitle(n.data)), h('span', { class: 'r-meta' }, htmlToText(n.data.html).slice(0, 50))))));
     if (dailies.length) inner.appendChild(h('div', { class: 'result-group' }, h('h2', null, 'Daily notes'), dailies.map((d) =>

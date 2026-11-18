@@ -12,6 +12,8 @@ import calendarView from './views/calendar.js';
 import { boardsView, boardView } from './views/whiteboard.js';
 import { tagsView, tagView } from './views/tags.js';
 import settingsView from './views/settings.js';
+import homeView from './views/home.js';
+import { initTaskPanel, closeTask, markSelected } from './taskPanel.js';
 
 // ---------- Routing ----------
 function parse() {
@@ -39,17 +41,20 @@ function route() {
     case 'tags': name = 'tags'; factory = tagsView; params = {}; break;
     case 'tag': name = 'tag'; factory = tagView; params = { id: p[1] }; break;
     case 'settings': name = 'settings'; factory = settingsView; params = {}; break;
+    case 'home': name = 'home'; factory = homeView; params = {}; break;
     case 'calendar': name = 'calendar'; factory = calendarView; params = { mode: p[1] || 'week', date: p[2] || today() }; break;
-    default: location.replace('#/calendar/week/' + today()); return;
+    default: location.replace('#/home'); return;
   }
+  if (!current || current.name !== name || JSON.stringify(current.params) !== JSON.stringify(params)) closeTask();
   // Same view with new params: let it update in place if it can.
   if (current && current.name === name && current.view.update && current.view.update(params) !== false) {
+    current.params = params;
     renderSidebar();
     return;
   }
   if (current && current.view.destroy) current.view.destroy();
   clear(viewEl);
-  current = { name, view: factory(viewEl, params) || {} };
+  current = { name, params, view: factory(viewEl, params) || {} };
   appEl.classList.remove('drawer-open');
   document.getElementById('scrim').hidden = true;
   renderSidebar();
@@ -91,7 +96,8 @@ function renderSidebar() {
   };
 
   sidebarEl.append(
-    h('div', { class: 'brand' }, h('span', { class: 'brand-mark' }), h('span', { class: 'brand-name' }, 'Planner')),
+    h('a', { class: 'brand', href: '#/home' }, h('span', { class: 'brand-mark' }), h('span', { class: 'brand-name' }, 'Planner')),
+    navItem('Home', 'home', '/home', { active: s === 'home' }),
     navItem('Calendar', 'calendar', '/calendar/week/' + today(), { active: s === 'calendar' }),
     navItem('Daily notes', 'daily', '/daily/' + today(), { active: s === 'daily' }),
 
@@ -152,11 +158,13 @@ async function boot() {
   let sidebarQueued = false;
   store.onChange((types, source) => {
     if (current && current.view.refresh) current.view.refresh(types, source);
+    markSelected();
     if (!sidebarQueued && ['list', 'group', 'board', 'task', 'note'].some((t) => types.has(t))) {
       sidebarQueued = true;
       requestAnimationFrame(() => { sidebarQueued = false; if (!sidebarEl.contains(document.activeElement)) renderSidebar(); });
     }
   });
+  initTaskPanel(appEl);
   setRouter(route);
   window.addEventListener('hashchange', route);
   route();

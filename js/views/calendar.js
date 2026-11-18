@@ -15,7 +15,6 @@ export default function calendarView(root, params) {
   let mode = ['month', 'week', 'day'].includes(params.mode) ? params.mode : 'week';
   let date = params.date;
   let dayBlock = null;
-  const expanded = new Set();
 
   const wrap = h('div', { class: 'cal' });
   const head = h('div', { class: 'cal-head' });
@@ -121,7 +120,7 @@ export default function calendarView(root, params) {
     const input = h('input', { type: 'text', placeholder: 'Add a task for this day', 'aria-label': 'Add a task for this day', 'data-add-key': 'day' });
     const form = h('form', { class: 'add-row' }, icon('plus', 18), input);
     form.addEventListener('submit', (e) => { e.preventDefault(); if (input.value.trim()) { addTask(input.value, { due: date }); input.value = ''; input.focus(); } });
-    const opts = { expanded, showList: true, showDue: false, onToggleOpen: renderDayTasks };
+    const opts = { showList: true, showDue: false };
     dayTasks.append(h('div', { class: 'panel' }, h('h2', null, icon('tasks', 18), h('span', { class: 'grow' }, 'Tasks'), h('span', { class: 'due' }, `${tasks.filter((x) => !x.data.done).length} open`)),
       form, tasks.length ? tasks.map((tk) => taskRow(tk, opts)) : h('div', { class: 'empty', style: { padding: '10px' } }, 'No tasks due on this day.')));
     if (date === t) {
@@ -159,7 +158,7 @@ export default function calendarView(root, params) {
   return {
     update(p) {
       mode = ['month', 'week', 'day'].includes(p.mode) ? p.mode : 'week';
-      date = p.date; expanded.clear();
+      date = p.date;
       renderHead(); renderBody();
     },
     refresh(types, source) {

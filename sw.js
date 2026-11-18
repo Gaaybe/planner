@@ -1,10 +1,10 @@
 // Offline support: keeps the app's files on the device so it opens without internet.
-const VERSION = 'planner-v1';
+const VERSION = 'planner-v2';
 const SHELL = [
   './', 'index.html', 'config.js', 'manifest.webmanifest', 'css/app.css',
   'js/app.js', 'js/nav.js', 'js/util.js', 'js/icons.js', 'js/store.js', 'js/sync.js', 'js/components.js', 'js/editor.js',
   'js/views/taskRow.js', 'js/views/tasks.js', 'js/views/notes.js', 'js/views/daily.js', 'js/views/calendar.js',
-  'js/views/whiteboard.js', 'js/views/tags.js', 'js/views/settings.js',
+  'js/views/whiteboard.js', 'js/views/tags.js', 'js/views/settings.js', 'js/views/home.js', 'js/taskPanel.js',
   'icons/icon.svg', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'
 ];
 

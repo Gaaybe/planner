@@ -1,6 +1,7 @@
 // Stroke icons drawn on a 24px grid.
 const P = {
   check: '<path d="M5 12.5l4.2 4.2L19 7"/>',
+  home: '<path d="M4 10.5L12 4l8 6.5V20h-5.5v-5.5h-5V20H4z"/>',
   tasks: '<rect x="3.5" y="4" width="5" height="5" rx="1.2"/><path d="M12 6.5h8.5"/><rect x="3.5" y="14" width="5" height="5" rx="1.2"/><path d="M12 16.5h8.5"/><path d="M4.8 6.6l1.3 1.2 2.2-2.4"/>',
   note: '<path d="M6 3.5h8.5L19 8v12.5H6z"/><path d="M14 3.5V8.5h5"/><path d="M9 13h7M9 16.5h5"/>',
   folder: '<path d="M3.5 6.5h6l2 2h9v10.5h-17z"/>',

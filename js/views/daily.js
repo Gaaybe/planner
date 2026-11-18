@@ -52,7 +52,7 @@ export default function dailyView(root, params) {
       h('div', { class: 'split-list-body' }, sorted.map((ds) => {
         const r = getDaily(ds);
         return h('button', { class: 'list-item' + (ds === date ? ' active' : ''), onclick: () => go('/daily/' + ds) },
-          h('div', { class: 'li-title' }, ds === t ? h('span', { class: 'mark' }, 'Today') : relDay(ds), ' ', h('span', { style: { color: 'var(--muted)', fontWeight: 400 } }, fmtDate(ds, { month: 'short', day: 'numeric', year: 'numeric' }))),
+          h('div', { class: 'li-title' }, relDay(ds), ' ', h('span', { style: { color: 'var(--muted)', fontWeight: 400 } }, fmtDate(ds, { month: 'short', day: 'numeric', year: 'numeric' }))),
           h('div', { class: 'li-snippet' }, r ? htmlToText(r.data.html).slice(0, 140) || 'Empty' : 'Nothing written yet'),
           r ? h('div', { class: 'li-meta' }, tagChips(r.data.tags)) : null);
       })));
@@ -78,7 +78,7 @@ export default function dailyView(root, params) {
         h('div', { style: { display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' } },
           h('button', { class: 'icon-btn', 'aria-label': 'Previous day', onclick: () => go('/daily/' + addDays(date, -1)) }, icon('left', 20)),
           h('button', { class: 'icon-btn', 'aria-label': 'Next day', onclick: () => go('/daily/' + addDays(date, 1)) }, icon('right', 20)),
-          h('div', { class: 'daily-date' }, isToday ? h('span', { class: 'mark' }, fmtLong(date)) : fmtLong(date)),
+          h('div', { class: 'daily-date' }, fmtLong(date)),
           isToday ? null : h('button', { class: 'btn small', style: { marginLeft: 'auto' }, onclick: () => go('/daily/' + today()) }, 'Today')),
         h('div', { class: 'meta-row' }, block.tags)),
       h('div', { class: 'day-strip' }, tasksBox),

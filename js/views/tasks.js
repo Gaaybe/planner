@@ -7,7 +7,6 @@ import { taskRow, sortTasks, addTask, isEditingInside } from './taskRow.js';
 
 export default function tasksView(root, params) {
   let listId = params.listId;
-  const expanded = new Set();
   let showDone = false;
   const page = h('div', { class: 'page' });
   const inner = h('div', { class: 'narrow' });
@@ -63,7 +62,7 @@ export default function tasksView(root, params) {
     const tasks = store.all('task', filter);
     const open = tasks.filter((t) => !t.data.done).sort(sortTasks);
     const done = tasks.filter((t) => t.data.done).sort((a, b) => (b.data.doneAt || 0) - (a.data.doneAt || 0));
-    const opts = { expanded, showList: listId === 'all', onToggleOpen: renderRows };
+    const opts = { showList: listId === 'all' };
     if (!open.length && !done.length) {
       rows.appendChild(h('div', { class: 'empty' }, h('strong', null, 'Nothing here yet'), 'Type a task above and press Enter.'));
       return;
@@ -81,10 +80,10 @@ export default function tasksView(root, params) {
   if (listId !== 'all' && !store.get(listId)) addRow.hidden = true;
 
   return {
-    update(p) { listId = p.listId; expanded.clear(); addRow.hidden = listId !== 'all' && !store.get(listId); renderHead(); renderRows(); },
+    update(p) { listId = p.listId; addRow.hidden = listId !== 'all' && !store.get(listId); renderHead(); renderRows(); },
     refresh(types) {
       if (types.has('list') && !head.contains(document.activeElement)) renderHead();
-      if ((types.has('task') || types.has('tag') || types.has('list')) && !isEditingInside(rows)) renderRows();
+      if (types.has('task') || types.has('tag') || types.has('list')) renderRows();
     }
   };
 }
